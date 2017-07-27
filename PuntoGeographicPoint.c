@@ -4,8 +4,9 @@
 #include <time.h>
 
 void aleatorio_inicial(int filas, int columnas, int *x_x, int *y_y, int **matriz);
-int bordes(int a, int i, int num);
+int bordes(int a, int num);
 void radio_r(int **matriz, int x, int y, int filas, int columnas, int *rad);
+void caminata(int *x, int *y, int **matriz, int filas, int columnas);
 void liberar_punteros(int **matriz, int filas);
 
 int main(){
@@ -37,7 +38,9 @@ int main(){
   aleatorio_inicial(filas, columnas, &x, &y, matriz);
   //printf("%d %d\n", x, y);
   radio_r(matriz, x, y, filas, columnas, &radio);
-  printf("%d\n", radio);
+  //printf("%d\n", radio);
+  caminata(&x, &y, matriz, filas,columnas);
+  printf("%d %d\n", x, y);
   liberar_punteros(matriz, filas);
 
   return 0;
@@ -62,12 +65,12 @@ void aleatorio_inicial(int filas, int columnas, int *x_x, int *y_y, int **matriz
   *y_y=yy;
 }
 
-int bordes(int a, int i, int num){
+int bordes(int a, int num){
   if (a >= num){
-    a = a - num + i;
+    a = a - num;
   }
-  if (a <= 0){
-    a = a + num - i;
+  if (a < 0){
+    a = a + num;
   }
   return a;
 }  
@@ -79,10 +82,10 @@ void radio_r(int **matriz, int x, int y, int filas, int columnas, int *rad){
       for(int n=y-i; n<y+i; n++){
 	if((pow((pow(m-x, 2.0) + pow(n-y, 2.0)),0.5)<=i)){
 	  
-	  if(matriz[bordes(m,i,columnas)][bordes(n,i,filas)]==1){
+	  if(matriz[bordes(m,columnas)][bordes(n,filas)]==1){
 	    r=i;
 	    parar=1;
-	    break;	    
+	    	    
 	  }
 	}
 	if(parar!=0){
@@ -102,6 +105,23 @@ void radio_r(int **matriz, int x, int y, int filas, int columnas, int *rad){
 }
 
 
+void caminata(int *x, int *y, int **matriz, int filas, int columnas){
+  
+  int a = *x;
+  int b = *y;
+  int rango=50;
+  srand(time(NULL));
+  a = rand() % (columnas-rango) + rango;
+  b = rand() % (filas-rango) + rango;
+
+   while(matriz[bordes(a,filas)][bordes(b,columnas)]==1){
+     a = rand() % (columnas-rango) + rango;
+     b = rand() % (filas-rango) + rango;
+   }
+
+   *x=a;
+   *y=b;
+}
 
 
 void liberar_punteros(int **matriz, int filas){  
