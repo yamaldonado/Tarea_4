@@ -3,8 +3,9 @@
 #include <math.h>
 #include <time.h>
 
-void aleatorio_inicial(int filas, int columnas, int x, int y, int **matriz);
-void mascara(int **matriz, int x, int y, int filas);
+void aleatorio_inicial(int filas, int columnas, int *x_x, int *y_y, int **matriz);
+int bordes(int a, int i, int num);
+void radio_r(int **matriz, int x, int y, int filas, int columnas, int *rad);
 void liberar_punteros(int **matriz, int filas);
 
 int main(){
@@ -14,7 +15,7 @@ int main(){
   int i, j;
   int x;
   int y;
-  int radio;
+  int radio=0;
 
   int **matriz = malloc(filas*sizeof(int *));
   
@@ -30,57 +31,77 @@ int main(){
       fscanf(mapa,"%d", &matriz[i][j]);       
      } 
   }
-
-  
   fclose(mapa);
 
   
-  int min=0;
-  srand(time(NULL));
-
-  while(matriz[x][y] != 1){
-    y = rand() % (columnas - min +1) + min;
-    x = rand() % (filas - min+1 ) + min;
-  }
- 
-  
-
-  aleatorio_inicial(filas, columnas, x, y, matriz);
-  //mascara(matriz, 170, 100, filas);
-  printf("%d", radio);
+  aleatorio_inicial(filas, columnas, &x, &y, matriz);
+  //printf("%d %d\n", x, y);
+  radio_r(matriz, x, y, filas, columnas, &radio);
+  printf("%d\n", radio);
   liberar_punteros(matriz, filas);
 
   return 0;
 }
 
-void aleatorio_inicial(int filas, int columnas, int x, int y, int **matriz){
-  
+
+
+
+void aleatorio_inicial(int filas, int columnas, int *x_x, int *y_y, int **matriz){
+  int xx=*x_x;
+  int yy=*y_y;
   int min=0;
   srand(time(NULL));
+   yy = rand() % (columnas-min) + min;
+   xx = rand() % (filas-min) + min;
 
-  while(matriz[x][y] == 1){
-    y = rand() % (columnas-min+1) + min;
-    x = rand() % (filas-min+1) + min;
+  while(matriz[xx][yy] == 1){
+    yy = rand() % (columnas-min) + min;
+    xx = rand() % (filas-min) + min;
   }
+  *x_x=xx;
+  *y_y=yy;
 }
 
-
-  
-void mascara(int **matriz, int x, int y, int filas){
-  int radio=0;
+int bordes(int a, int i, int num){
+  if (a >= num){
+    a = a - num + i;
+  }
+  if (a <= 0){
+    a = a + num - i;
+  }
+  return a;
+}  
+void radio_r(int **matriz, int x, int y, int filas, int columnas, int *rad){
+  int parar=0;
+  int r= *rad;
   for (int i=0; i<filas ; i++){
     for(int m=x-i; m<x+i ; m++){
       for(int n=y-i; n<y+i; n++){
-	if(matriz[m][n]==1){
-	  i=filas;
-	  n=y+i;
-	  m=x+i;
+	if((pow((pow(m-x, 2.0) + pow(n-y, 2.0)),0.5)<=i)){
+	  
+	  if(matriz[bordes(m,i,columnas)][bordes(n,i,filas)]==1){
+	    r=i;
+	    parar=1;
+	    break;	    
+	  }
+	}
+	if(parar!=0){
+	  break;
 	}
       }
+      if(parar!=0){
+	break;
+      }
     }
-    radio=i;
-   }  
+    if(parar!=0){
+      break;
+    }
+  }
+  *rad=r;
+  
 }
+
+
 
 
 void liberar_punteros(int **matriz, int filas){  
