@@ -25,7 +25,7 @@ int main(){
   float radio_new;
   float alpha;
   float beta;
-  int n_iteraciones=100;
+  int n_iteraciones=1000;
   int rango= 50;
 
   int **matriz = malloc(filas*sizeof(int *));
@@ -45,6 +45,9 @@ int main(){
   fclose(mapa);
 
   //empieza el metodo de montecarlo
+
+  FILE *mejor_dato;
+  mejor_dato= fopen("mejor.txt", "w+");
    
    aleatorio_inicial(&x_old, &y_old, matriz);
    obtener_radio(matriz, x_old, y_old, &radio_old);
@@ -63,7 +66,6 @@ int main(){
 
      obtener_radio(matriz, x_new, y_new, &radio_new);
      alpha = radio_new/radio_old;
-     //printf("%f\n", alpha);
      if(alpha>=1.0){
        radio = radio_new;
       }
@@ -79,9 +81,9 @@ int main(){
      x_old=x_new;
      y_old=y_new;
      radio_old = radio_new;
-     printf("%d\n", radio); 
+     //printf("%d %d %d\n", radio, x_new, y_new); 
    }  
-     
+  fprintf(mejor_dato, "%d %d %d\n", radio, x_new, y_new);   
   liberar_punteros(matriz);
 
   return 0;
@@ -165,24 +167,7 @@ void caminata(int *x_p, int *y_p, int **matriz){
       
 }
 
-/*
-void monte_carlo(int *x, int *y, int **matriz, int *r){
-  int xx= *x;  //x old
-  int yy= *y;  //y old
-  int x_new;
-  int y_new;
-  int r_new= *rad;
-  int r_old;
-  
-  
-  
-  for(i=0; i<1000; i++){
-     obtener_radio(matriz, xx, yy, r);
-     caminata(x, y, matriz);
-  }
- 
-}
-*/
+
 void liberar_punteros(int **matriz){  
   for(int i=0; i<filas; i++){
     free(matriz[i]);
