@@ -3,20 +3,30 @@
 #include <math.h>
 #include <time.h>
 
-void aleatorio_inicial(int filas, int columnas, int *x_x, int *y_y, int **matriz);
+int filas;
+int columnas;
+void aleatorio_inicial(int *x_x, int *y_y, int **matriz);
 int bordes(int a, int num);
-void radio_r(int **matriz, int x, int y, int filas, int columnas, int *rad);
-void caminata(int *x, int *y, int **matriz, int filas, int columnas);
-void liberar_punteros(int **matriz, int filas);
+void obtener_radio(int **matriz, int x, int y, float *rad);
+void caminata(int *x_p, int *y_p, int **matriz);
+void liberar_punteros(int **matriz);
 
 int main(){
   
-  int filas=500;
-  int columnas= 744;
+  filas=500;
+  columnas= 744;
   int i, j;
-  int x;
-  int y;
+  int x_new;
+  int y_new;
+  int x_old;
+  int y_old;
   int radio=0;
+  float radio_old;
+  float radio_new;
+  float alpha;
+  float beta;
+  int n_iteraciones=100;
+  int rango= 50;
 
   int **matriz = malloc(filas*sizeof(int *));
   
@@ -34,14 +44,45 @@ int main(){
   }
   fclose(mapa);
 
-  
-  aleatorio_inicial(filas, columnas, &x, &y, matriz);
-  //printf("%d %d\n", x, y);
-  radio_r(matriz, x, y, filas, columnas, &radio);
-  //printf("%d\n", radio);
-  caminata(&x, &y, matriz, filas,columnas);
-  printf("%d %d\n", x, y);
-  liberar_punteros(matriz, filas);
+  //empieza el metodo de montecarlo
+   
+   aleatorio_inicial(&x_old, &y_old, matriz);
+   obtener_radio(matriz, x_old, y_old, &radio_old);
+   
+   srand(time(NULL));
+   
+   for(i=0; i<n_iteraciones; i++){
+         
+     x_new = rand() % (filas-rango) + rango;
+     y_new = rand() % (columnas-rango) + rango;
+     
+     while(matriz[bordes(x_new,filas)][bordes(y_new,columnas)]==1){
+       x_new = rand() % (filas-rango) + rango;
+       y_new = rand() % (columnas-rango) + rango;  
+     }
+
+     obtener_radio(matriz, x_new, y_new, &radio_new);
+     alpha = radio_new/radio_old;
+     //printf("%f\n", alpha);
+     if(alpha>=1.0){
+       radio = radio_new;
+      }
+     else{
+       beta = (rand()/(double)(RAND_MAX))*abs(0-1)+0;
+       if (beta <= alpha){
+	 radio = radio_new;
+       }
+       else{
+	 radio= radio_old;
+       }
+     }
+     x_old=x_new;
+     y_old=y_new;
+     radio_old = radio_new;
+     printf("%d\n", radio); 
+   }  
+     
+  liberar_punteros(matriz);
 
   return 0;
 }
@@ -49,7 +90,7 @@ int main(){
 
 
 
-void aleatorio_inicial(int filas, int columnas, int *x_x, int *y_y, int **matriz){
+void aleatorio_inicial(int *x_x, int *y_y, int **matriz){
   int xx=*x_x;
   int yy=*y_y;
   int min=0;
@@ -74,7 +115,7 @@ int bordes(int a, int num){
   }
   return a;
 }  
-void radio_r(int **matriz, int x, int y, int filas, int columnas, int *rad){
+void obtener_radio(int **matriz, int x, int y, float *rad){
   int parar=0;
   int r= *rad;
   for (int i=0; i<filas ; i++){
@@ -82,7 +123,7 @@ void radio_r(int **matriz, int x, int y, int filas, int columnas, int *rad){
       for(int n=y-i; n<y+i; n++){
 	if((pow((pow(m-x, 2.0) + pow(n-y, 2.0)),0.5)<=i)){
 	  
-	  if(matriz[bordes(m,columnas)][bordes(n,filas)]==1){
+	  if(matriz[bordes(m,filas)][bordes(n,columnas)]==1){
 	    r=i;
 	    parar=1;
 	    	    
@@ -105,10 +146,10 @@ void radio_r(int **matriz, int x, int y, int filas, int columnas, int *rad){
 }
 
 
-void caminata(int *x, int *y, int **matriz, int filas, int columnas){
+void caminata(int *x_p, int *y_p, int **matriz){
   
-  int a = *x;
-  int b = *y;
+  int a = *x_p;
+  int b = *y_p;
   int rango=50;
   srand(time(NULL));
   a = rand() % (columnas-rango) + rango;
@@ -119,12 +160,30 @@ void caminata(int *x, int *y, int **matriz, int filas, int columnas){
      b = rand() % (filas-rango) + rango;
    }
 
-   *x=a;
-   *y=b;
+   *x_p=a;
+   *y_p=b;
+      
 }
 
-
-void liberar_punteros(int **matriz, int filas){  
+/*
+void monte_carlo(int *x, int *y, int **matriz, int *r){
+  int xx= *x;  //x old
+  int yy= *y;  //y old
+  int x_new;
+  int y_new;
+  int r_new= *rad;
+  int r_old;
+  
+  
+  
+  for(i=0; i<1000; i++){
+     obtener_radio(matriz, xx, yy, r);
+     caminata(x, y, matriz);
+  }
+ 
+}
+*/
+void liberar_punteros(int **matriz){  
   for(int i=0; i<filas; i++){
     free(matriz[i]);
   }  
